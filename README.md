@@ -14,7 +14,7 @@ Basically, it's only a singleton you could use as:
 The idea came to me when I was thinking about a way to make javascript demos where visuals and sounds are processed 
 through the same engine, to provide a purely synchronized experience between both worlds (remove the "art" from what I've just said).
 
-I didn't even google to see if anybody came up with the same idea; As a musician/music maker/composer/you-name-it, I came up with a pretty naive and straight-forward implementation of the concept that would actually make sense to me... hence the use of a BPL and TPB ("tick per beat"). 
+I didn't even google to see if anybody came up with the same idea; As a musician/music maker/composer/you-name-it, I came up with a pretty naive and straight-forward implementation of the concept that would actually make sense to me... hence the use of a BPM and TPB ("tick per beat"). 
 
 I guess it could also be a good starting block for a simple soundtracker in the end.
 
