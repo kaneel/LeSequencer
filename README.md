@@ -110,7 +110,7 @@ function main(t) {
 
 ### Final words
 
-I started this (and almost ended it) during some my summer 2013 holidays.
+I started this (and almost ended it) during my summer 2013 holidays.
 I just had an idea while my daughter was sleeping and I thought I might eventually give it a try.
 It's not perfect but it's working and it's begging for people to test and improve it (pretty please).
 
