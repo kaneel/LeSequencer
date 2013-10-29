@@ -95,7 +95,7 @@ Then the functions of the array will be executed like this:
 -> 24: func4
 
 TODO/Possible improvements: 
-Allows to looping? Randomizing?
+Allows to loop? Randomize?
 
 ### PLAY IT! 
 
