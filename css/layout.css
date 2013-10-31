@@ -1,0 +1,31 @@
+html{font-size:62.5%;}
+body{text-align:center;font-size:1em;line-height:1.4em;font-family:Helvetica, Arial, Sans-serif;}
+
+h1{font-size:6em;margin-bottom:.5em;line-height:2em;}
+h2{border-bottom:1px solid;font-size:4em;line-height:1.4em;margin-bottom:0.2em;}
+h3{font-size:3em;line-height:1.4em;margin-bottom:0.2em;}
+p, pre{font-size:1.5em;margin-bottom:0.4em;}
+
+#version{font-size:0.5em;}
+
+#top-menu{font-size:2em;margin-bottom:2em;}
+#top-menu li{display:inline-block;padding:0 .5em;}
+
+#wrapper{position:relative;width:95%;margin:0 auto;text-align:left;overflow:hidden;}
+
+#example{border-bottom:1px dashed;margin-bottom:2em;}
+#canvas-wrapper{position:relative;width:50%;margin:0 auto;}
+#counter{position:absolute;top:0;left:0;background:#fff;padding:1em;font-size:2em;}
+#canvas{display:block;width:100%;height:auto;margin-bottom:2em;}
+#controls{text-align:center;margin-bottom:2em;}
+#controls .row{overflow:hidden;}
+#controls button{border:1px solid grey;}
+
+#readme{margin-bottom:2em;}
+#readme ul{font-size:1.5em;margin-bottom:1em;}
+#readme ul li{margin-left: 2em;}
+#readme ul li:before{content:"- ";}
+
+@media screen and (max-width: 1024px) {
+	#canvas{width:100%;}
+}

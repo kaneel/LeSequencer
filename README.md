@@ -39,7 +39,8 @@ options = {
 ### Register! 
 
 ```js
-Sequencer.register(start, { // start is a number, the beat you start the sequence at
+Sequencer.register(id, {
+  start: number,  // start is a number, the beat you start the sequence at
   duration: number, // the beat you stop playing the sequence at
   values: {}, // an object for passing values you can reference on this (not sure it's useful)
   sync: [], // an array you fill with function and 
@@ -62,6 +63,17 @@ Sequencer.register(start, { // start is a number, the beat you start the sequenc
     */
   }
 })
+```
+
+### PLAY IT! 
+
+Because it's begging hard for being played. 
+
+```js
+function main(t) {
+  requestAnimationFrame(main)
+  Sequencer.play(t)
+}
 ```
 
 #### SYNCS
@@ -95,16 +107,25 @@ Then the functions of the array will be executed like this:
 -> 24: func4
 
 TODO/Possible improvements: 
-Allows to loop? Randomize?
+Randomize?
 
-### PLAY IT! 
+### Misc.
 
-Because it's begging hard for being played. 
+While this sequencer was mainly built for making demos and synchronized animations, I realized some people may want to unregister and register scenes
+while it's playing. It's now possible using Sequencer.unregister(id);
+
+Here's the full façade:
 
 ```js
-function main(t) {
-  requestAnimationFrame(main)
-  Sequencer.play(t)
+return {
+  init: init, // initialize, pass options object
+  register: register, // register a scene
+  unregister: unregister, // unregister a scene, remove everywhere
+  remove: remove, // remove a scene (pass ID), will only remove from the "playback" but keep in timeline
+  add: add, // add a scene directly to the playback
+  goTo: goTo, // goTo.. beat; 
+  play: play, // play (time in ms)
+  stop: stop  // (...stop)
 }
 ```
 
