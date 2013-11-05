@@ -159,7 +159,7 @@ Randomize?
 ### Misc.
 
 While this sequencer was mainly built for making demos and synchronized animations, I realized some people may want to unregister and register scenes
-while it's playing. It's now possible using Sequencer.unregister(sID) (wher sID is the id property of a scene)
+while it's playing. It's now possible using Sequencer.unregister(sID) (where sID is the id property of a scene)
 
 #### Sequencer.init
 
