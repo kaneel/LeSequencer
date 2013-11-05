@@ -2,8 +2,7 @@
   var doc = root.document
     , win = root.window
     , Sequencer = root.Sequencer = (function() {
-        var timeline = {}
-          , sequences = {}
+        var sequences = {}
           , seqToPlay = {}
           , thisSeq = null
           // some numbers
@@ -20,7 +19,6 @@
           , beat = 0
           , oldTick = 0
           , oldBeat = 0
-          , numSeq = 0
           , duration = 0
           // some booleans
           , debug = false
@@ -28,61 +26,197 @@
           , beatFired = false
           , tickFired = false
           // some default options
-          , options = {
-              bpm: 60,
-              loop: false,
-              debug: false,
-              tpb: 16
-            }
-          // some important object
-          , Sync = (function() {
-              var S = function(o, values) {
-                var self = this
+          , options = { bpm: 60,  loop: false, debug: false, tpb: 16 }
+          /*
+            This is our World.
+            The timeline must be aware of how many scenes are registered on it.
+          */
+          , timeline = (function() {
+              var timelineArr = {}
+                , references = {}
+                , T = function(o) {
+                  extend.call(this, o)
 
-                for (var k in o) { // copy object
-                  self[k] = o[k]
+                  this.duration = 0
                 }
 
-                self.values = values
+            T.prototype.add = function addToTimeline(start, sID, loop) {
+              var scene = sequences[sID]
 
-                self.index = 0
+              // if no sequences are registered at this start, create an empty array
+              if (typeof timelineArr[start] == "undefined") {
+                timelineArr[start] = []
+              }
+              
+              // push to timeline
+              if (typeof references[sID] == "undefined") {
+                references[sID] = {}
+              }
 
-                return self
+              // make a reference: this ID is located at this start
+              references[sID][start] = timelineArr[start].push(sID) - 1
+
+              // check for timeline duration
+              if (this.duration - start < scene.duration) {
+                this.duration = start + scene.duration
+              }
+
+              if (typeof loop == "number" && loop) {
+                // recurse it. Only a thought, not sure about this yet.
+                addToTimeline(start + scene.duration, scene, loop - 1)
+              }
+            }
+
+            T.prototype.remove = function(start, sID) {
+              var scene = sequences[sID]
+
+              if (typeof scene != "undefined") {
+                timelineArr[start].splice(references[sID][start], 1)
+                
+                if (typeof seqToPlay[sID] != "undefined") { // if the scene was already registered in seqToPlay
+                  if (typeof scene.teardown == "function") {
+                    scene.teardown()
+                  }
+
+                  delete seqToPlay[sID]
+                }
+
+                return true
+              }
+              
+              return false
+            }
+
+            // scene is killed, then everything related to it in the timeline is dead... DEAD.
+            T.prototype.kill = function(sID) {
+              // check references map, 
+              for (var k in references[sID]) if (references[sID].hasOwnProperty(k)) {
+                this.remove(k, sID)
+              }
+
+              delete references[sID]
+            }
+
+            T.prototype.check = function(beat) {
+              var scene = null
+
+              // check if there's something register at index: beat
+              if(typeof timelineArr[beat] != "undefined") {
+                // loop on the array
+                for(var i = timelineArr[beat].length; i--; ) {
+                  // if not already added, add it
+                  scene = sequences[timelineArr[beat][i]]
+                  
+                  if(!seqToPlay[scene.id]) {
+                    // execute start method
+                    if (typeof scene.init == "function") {
+                      scene.init()
+                    }
+
+                    // add
+                    seqToPlay[scene.id] = {
+                      scene: scene,
+                      end: beat + scene.duration,
+                      start: beat
+                    }
+                  }
+                }
+              }
+
+              // loop on seqToPlay
+              for (var k in seqToPlay) if (seqToPlay.hasOwnProperty(k) && seqToPlay[k].end == beat) {
+                if (typeof seqToPlay[k].scene.teardown == "function") {
+                  seqToPlay[k].scene.teardown()
+                }
+
+                delete seqToPlay[k]
+              }
+            }
+
+            return new T()
+          }())
+          /*
+            A scene is only a bunch of functions:
+              - init
+              - play
+              - teardown
+
+            + duration.
+            + loop: number (loop an amount of time)
+
+            And it actually doesn't know more, only the Timeline does.
+            The Timeline is almighty. 
+            All glory to the Timeline.
+          */
+          , Scene = (function() {
+              var sceneCount = 0
+                , S = function Scene(o) {
+                    if (!o.id) {
+                      o.id = sceneCount++ // set an unique ID
+                    }
+
+                    extend.call(this, o)
+                  }
+
+              S.prototype.update = function(o) {
+                extend.call(this, o)
+              }
+
+              return S
+            }())
+          /*
+            A Sync is only a very simple iterator
+          */
+          , Sync = (function() {
+              var S = function(o, values) {
+                extend.call(this,o)
+
+                this.values = values
+
+                this.index = 0
+
+                return this
               }
 
               S.prototype.execute = function(index) {
-                var self = this
-
-                if (self.sub) {
-                  index = index / self.sub
-                  // stop exec if float (fast hack yet...)
-                  if (index.toString().split(".").length > 1) return S
+                if (this.sub) {
+                  this.index = this.index / self.sub
+                  
+                  // tiny trick to make sure we don't get a floating number
+                  if (index%1) {
+                    // abort
+                    return 
+                  }
                 }
                     
-                if (self.arr[index]) {
-                  self.arr[index](self.values)
+                if (this.arr[this.index]) {
+                  this.arr[this.index](this.values)
                 }
               }
 
               return S
             }())
 
-        // the converter, converts ms into beats and ticks (make a rap about it).
-        function calculate(t) {
-          now = t - timeDiff
-          
+        function makeScene(o) {
+          return new Scene(o)
+        }
+
+        // the converter, converts ms into beats and ticks (with no fancy tricks, you can make a rap about it).
+        function convert(time) {
+          now = time - timeDiff
+
           // convert ms to ticks
           tick = (now / msPerTick)|0
           beat = (now / msPerBeat)|0
-          
+
           // if new tick
-          if (!frame || tick != oldTick) {
+          if (frame === 0 || tick != oldTick) {
             tickFired = true
             oldTick = tick
           }
 
           // if new beat
-          if (!frame || beat != oldBeat) {
+          if (frame === 0 || beat != oldBeat) {
             beatFired = true
             oldBeat = beat
           }
@@ -90,19 +224,20 @@
 
         // some simple copy tool
         function copy(o) {
-          var nO = {}
+          return extend.call({}, o)
+        }
 
-          for (var k in o) {
-            nO[k] = o[k]
+        // le extend
+        function extend(o) {
+          for (var k in o) if(o.hasOwnProperty(k)) {
+            this[k] = o[k]
           }
 
-          return nO
+          return this
         }
 
         function init(o) {
-          for (var k in o) if (o.hasOwnProperty(k)) {
-            options[k] = o[k]
-          }
+          extend.call(options, o)
 
           // debug mode
           if (typeof o.debug != "undefined") {
@@ -134,101 +269,61 @@
               fps = null
               now = null
             } else if (typeof o.debug == "object") {
-              debug.init();
+              debug.init()
             }
           }
 
+          // calculate and store
           msPerBeat = (min / options.bpm)
           msPerTick = msPerBeat / options.tpb
           
           return this
         }
 
-        function register(id,o) {
-          if(!!o.syncs) {
-            o.syncs = new Sync(o.syncs, o.values)
-          }
+        function register(start, scene) {
+          var newScene = null
 
-          if (!id) {
-            o.id = numSeq++ // set an unique ID
+          if(!(scene instanceof Scene)) {
+            if(typeof scene.syncs != "undefined") {
+              scene.syncs = new Sync(scene.syncs, scene.values)
+            }
+
+            newScene = new Scene(scene)
           } else {
-            o.id = id
-          }
-          
-          if (duration < o.start + o.duration) {
-            duration = o.start + o.duration
-          }
-
-          // if no sequences are registered at this start, create an empty array
-          if (!timeline[o.start]) {
-            timeline[o.start] = []
+            newScene = scene
           }
 
           // push to sequences collection
-          sequences[o.id] = o
-
-          // push to timeline
-          timeline[o.start][o.id] = o
+          sequences[newScene.id] = newScene
+          
+          timeline.add(start, newScene.id)
 
           // check if the sequence should be added into the seqToPlay map
-          if (beat && beat >= o.start && beat < o.start + o.duration  && !seqToPlay[o.id]) {
-            add(o)
-          }
-
-          // oh wow this bit is so, so, wrong.
-          if (!!o.loop) {
-            // update the object loop number
-            o.loop = +o.loop - 1
-            // register the same object (minus 1 on loop property) by making a copy
-            register(s + o.duration, copy(o))
+          if (beat > 0 && beat >= start && beat < (start + newScene.duration)) {
+            timeline.check(start)
           }
 
           return this
         }
 
-        function unregister(id) {
-          // tear down. 
-          if (typeof sequences[id].teardown == "function") {
-            sequences[id].teardown()
-          }
-          // mass delete
-          sequences[id] = null // delete the sequence from the sequences map            
-          seqToPlay[id] = null // delete the sequence from the seqToPlay map too, cargo-cult is strong
+        function unregister(sID) {
+          timeline.kill(sID)
+
+          delete sequences[sID]
           
-          // cargo-cult is stronger than strong
-          delete sequences[id]
-          delete seqToPlay[id]
+          return this
+        }
 
-          for (var k in timeline) if (timeline.hasOwnProperty(k) && !!timeline[k][id]) {
-            timeline[k][id] = null
-            delete timeline[k][id]
-          }
+        function add(start, sID) {
+          timeline.add(start, sID)
 
           return this
         }
 
-        function remove(id) {
-          // tear down. 
-          if (typeof sequences[id].teardown == "function") {
-            sequences[id].teardown()
-          }
-
-          // only remove from the sequences to play
-          seqToPlay[id] = null
-          // blabla
-          delete seqToPlay[id]
+        function remove(start, sID) {
+          timeline.remove(start, sID)
 
           return this
-        }
-
-        function add(seq) {
-           // execute start method
-            if (typeof seq.init == "function") {
-              seq.init()
-            }
-
-            // add
-            seqToPlay[seq.id] = seq
         }
 
         function goTo(beat) {
@@ -237,7 +332,23 @@
           return this
         }
 
-        function play(t) { // pl
+        function rewind(to, actual) {
+          goTo(to)
+          convert(actual)
+
+          // wash seqToPlay
+          for (var k in sequences) if (sequences.hasOwnProperty(k)) {
+            if(typeof seqToPlay[k] != "undefined") {
+              if(typeof sequences[k].teardown == "function") {
+                sequences[k].teardown()
+              }
+              
+              delete seqToPlay[k]
+            }
+          }
+        }
+
+        function play(time) { // pl
           isPlaying = true
           tickFired = false // set back to false
           beatFired = false // set back to false
@@ -250,47 +361,41 @@
               options.debug.fps.innerHTML = frame - frameDiff
               options.debug.now.innerHTML = now
             } else {
-              debug.behavior(frame - frameDiff, now);
+              debug.behavior(frame - frameDiff, now)
             }
             
             frameDiff = frame
           }
 
-          calculate(t)
+          convert(time)
           
-          // exp
-          if (!!options.loop && !!options.loop.end && beat >= options.loop.end) {
-            // change values
-            goTo(options.loop.start || 0)
-            calculate(t)
-          } else if(typeof options.loop == "boolean" && beat >= duration) {
-            goTo(0)
-            calculate(t)
+          // if loop is on and beat is superior|equal to the auto-calculated duration of timeline
+          if (typeof options.loop == "boolean" && beat >= timeline.duration) {
+            // go back to 0
+            rewind(0, time)
+          } else if (typeof options.loop == "object") {
+            if(typeof options.loop.end == "number" && (beat >= options.loop.end || beat >= timeline.duration)) {
+              // go back to 0
+              rewind(options.loop.start || 0, time)
+            }
           }
 
-          // check if there's a new sequence to add to the sequences to play
-          if(beatFired && !!timeline[beat]) {
-            // loop and add if not already added
-            for(var k in timeline[beat]) if (timeline[beat].hasOwnProperty(k) && !seqToPlay[timeline[beat][k].id]) {
-              add(timeline[beat][k])
-            }
+          // if new beat
+          if(beatFired) {
+            // check if there's a new sequence to add to the sequences to play (timeline takes care of it, just sit back and relax)
+            timeline.check(beat)
           }
 
           // then an other for-loop for great glory
           for(var k in seqToPlay) {
             thisSeq = seqToPlay[k]
             
-            // if thisSeq is not null
-            if (!!thisSeq) {
-              if (beat < thisSeq.start + thisSeq.duration && beat >= thisSeq.start) {
-                // throw syncs
-                if (tickFired && thisSeq.syncs) thisSeq.syncs.execute(tick%options.tpb)
-                // execute sequence main functions
-                thisSeq.play(now, tick, beat, tickFired /*bang for tick */, beatFired /* bang for beat */)
-              } else if (!!thisSeq) {
-                remove(thisSeq.id);
-              }
+            if (tickFired && !!thisSeq.scene.syncs) {
+              thisSeq.scene.syncs.execute(tick%options.tpb)
             }
+
+            // execute sequence main functions
+            thisSeq.scene.play(time, tick, beat, tickFired /*bang for tick */, beatFired /* bang for beat */)
           }
 
           // increase frame number - debug purposes only
@@ -299,21 +404,15 @@
           return this
         }
 
-        function stop() {
-          isPlaying = false
-
-          return this
-        }
-
         return {
           init: init,
+          makeScene: makeScene,
           register: register,
           unregister: unregister,
-          remove: remove,
           add: add,
+          remove: remove,
           goTo: goTo,
-          play: play,
-          stop: stop
+          play: play
         }
     }())
 }(this))

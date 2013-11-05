@@ -4,7 +4,8 @@ body{text-align:center;font-size:1em;line-height:1.4em;font-family:Helvetica, Ar
 h1{font-size:6em;margin-bottom:.5em;line-height:2em;}
 h2{border-bottom:1px solid;font-size:4em;line-height:1.4em;margin-bottom:0.2em;}
 h3{font-size:3em;line-height:1.4em;margin-bottom:0.2em;}
-p, pre{font-size:1.5em;margin-bottom:0.4em;}
+h4{font-size:2em;line-height:1.2em;margin-bottom:0.2em;}
+p, pre{font-size:1.5em;margin-bottom:1em;}
 
 #version{font-size:0.5em;}
 

@@ -36,10 +36,51 @@ options = {
 }
 ```
 
-### Register! 
+### Make a scene!
 
 ```js
-Sequencer.register(id, {
+var newScene = Sequencer.makeScene({
+  start: number,  // start is a number, the beat you start the sequence at
+  duration: number, // the beat you stop playing the sequence at
+  values: {}, // an object for passing values you can reference on this (not sure it's useful)
+  sync: [], // an array you fill with function and 
+  init: function() {
+    // a function that is executed when the sequence is initialized (when it starts playing)
+  },
+  teardown: function() {
+    // a function that is executed when the sequence is removed (when it's done doing its job)
+  },
+  play: function(now, tick, beat, tickFired, beatFired) {
+    /*
+        that's where you do the magic cooking
+        
+        Arguments: 
+          - now: time in ms
+          - tick: time in tick
+          - beat: time in beat
+          - tickFire: boolean acting as a bang for "new tick"
+          - beatFired: boolean acting as a bang for "new beat"
+    */
+  }
+})
+```
+
+### Register! 
+
+There's two ways to register a scene.
+
+#### With an already created scene.
+
+```js
+Sequencer.register(start, newScene)
+```
+
+#### Pass an object
+
+Passing a simple object is possible if you have no interests in doing "weird" things and you just want to register your scene without updating them later.
+
+```js
+Sequencer.register(start, {
   start: number,  // start is a number, the beat you start the sequence at
   duration: number, // the beat you stop playing the sequence at
   values: {}, // an object for passing values you can reference on this (not sure it's useful)
@@ -70,11 +111,17 @@ Sequencer.register(id, {
 Because it's begging hard for being played. 
 
 ```js
+startTime = +(new Date)
+Sequencer.play(0)
+requestAnimationFrame(main)
+
 function main(t) {
   requestAnimationFrame(main)
-  Sequencer.play(t)
+  Sequencer.play(+(new Date) - startTime)
 }
 ```
+
+(The way you deal with your "startTime" value is actually yours :)
 
 #### SYNCS
 
@@ -112,21 +159,62 @@ Randomize?
 ### Misc.
 
 While this sequencer was mainly built for making demos and synchronized animations, I realized some people may want to unregister and register scenes
-while it's playing. It's now possible using Sequencer.unregister(id);
+while it's playing. It's now possible using Sequencer.unregister(sID) (wher sID is the id property of a scene)
 
-Here's the full façade:
+#### Sequencer.init
+
+Function takes an object as a parameter, will extend the default options of the sequencer.
+
+#### Sequencer.makeScene
+
+Didn't we cover that already? 
+
+#### Sequencer.register
+
+Ok, we've been through that already :)
+
+#### Sequencer.unregister
+
+Completely remove traces of the scene. 
 
 ```js
-return {
-  init: init, // initialize, pass options object
-  register: register, // register a scene
-  unregister: unregister, // unregister a scene, remove everywhere
-  remove: remove, // remove a scene (pass ID), will only remove from the "playback" but keep in timeline
-  add: add, // add a scene directly to the playback
-  goTo: goTo, // goTo.. beat; 
-  play: play, // play (time in ms)
-  stop: stop  // (...stop)
-}
+function unregister(sID)
+```
+
+#### Sequencer.add
+
+Add a scene to the timeline. 
+
+```js
+function add(start, sID)
+```
+
+WARNING: The scene must be registered first.
+
+#### Sequencer.remove
+
+Remove a scene to the timeline. 
+
+```js
+function remove(start, sID)
+```
+
+WARNING: The scene must be registered first.
+
+#### Sequencer.goTo
+
+Pretty self-explanatory, right?
+
+```js
+function goTo(beat)
+```
+
+#### Sequencer.play
+
+Play! Actually, it's just converting the passed ms value into beats and ticks and will find which scenes should be added to the playback
+
+```js
+function play(ms)
 ```
 
 ### Final words

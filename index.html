@@ -8,7 +8,7 @@
   <link rel="stylesheet" type="text/css" href="css/layout.css">
 </head>
 <body>
-  <h1>LeSequencer <span id="version">(0.6)</span></h1>
+  <h1>LeSequencer <span id="version">(0.9)</span></h1>
   <nav>
     <ul id="top-menu">
       <li><a href="#example">Show me moving things!</a></li>
@@ -19,14 +19,14 @@
     <section id="example">
       <div id="controls">
         <div class="row">
-          <button id="register-first" data-id="first" class="register">Register first scene</button>
-          <button id="register-counter" data-id="counter" class="register">Register counter scene</button>
-          <button id="register-silly" data-id="silly" class="register">Register silly scene</button>
+          <button id="register-first" data-id="first" data-start="0" class="register">Register first scene</button>
+          <button id="register-counter" data-id="counter" data-start="0" class="register">Register counter scene</button>
+          <button id="register-silly" data-id="silly" data-start="6" class="register">Register silly scene</button>
         </div>
         <div class="row">
-          <button id="unregister-first" data-id="first" class="unregister">Unregister first scene</button>
-          <button id="unregister-counter" data-id="counter" class="unregister">Unregister counter scene</button>
-          <button id="unregister-silly" data-id="silly" class="unregister">Unregister silly scene</button>
+          <button id="unregister-first" data-id="first" data-start="0" class="unregister">Unregister first scene</button>
+          <button id="unregister-counter" data-id="counter" data-start="0" class="unregister">Unregister counter scene</button>
+          <button id="unregister-silly" data-id="silly" data-start="6" class="unregister">Unregister silly scene</button>
         </div>
         <div class="row">
           <button id="init60">INIT TO 60</button>
@@ -37,105 +37,153 @@
       <div id="canvas-wrapper"></div>
     </section>
     <section id="readme">
-  <h1>Le README</h1>
-  <h2>TL;DR</h2>
-  <p>A simple sequencer written in javascript.
-  As a sequencer, what it primarly does is to convert the current ms into ticks and beats.
-  You are allowed (even encouraged) to register sequences that goes from a beat to an other beat.</p>
-  <p>Basically, it&#39;s only a singleton you could use as:</p>
-  <ul>
-  <li>a demo engine</li>
-  <li>a possible starting block for your own visually editable sequencer</li>
-  </ul>
-  <p>The idea came to me when I was thinking about a way to make javascript demos where visuals and sounds are processed 
-  through the same engine, to provide a purely synchronized experience between both worlds (remove the &quot;art&quot; from what I&#39;ve just said).</p>
-  <p>I didn&#39;t even google to see if anybody came up with the same idea; As a musician/music maker/composer/you-name-it, I came up with a pretty naive and straight-forward implementation of the concept that would actually make sense to me... hence the use of a BPM and TPB (&quot;tick per beat&quot;). </p>
-  <p>I guess it could also be a good starting block for a simple soundtracker in the end.</p>
-  <h2>HOWTO</h2>
-  <h3>Initialize it</h3>
-  <pre><code class="language-javascript">Sequencer.init(options);</code></pre>
-  <p>Options are straight-forward so far.</p>
-  <pre><code class="language-javascript">options = {
-    debug : true|false, // will provide you a nice box for checking the current FPS and time, default is false
-    bpm: number, // where the magic happens, what is your BPM of choice, default is 60
-    tpb: number, // how much do you want to subdivide the BPM, default is 16
-    loop: boolean|number // do you want the sequencer to loop? true actually sets it to 0-end, number is the beat you loop at default is false.
+<h1>Le Sequencer</h1>
+<h2>TL;DR</h2>
+<p>A simple sequencer written in javascript.
+As a sequencer, what it primarly does is to convert the current ms into ticks and beats.
+You are allowed (even encouraged) to register sequences that goes from a beat to an other beat.</p>
+<p>Basically, it&#39;s only a singleton you could use as:</p>
+<ul>
+<li>a demo engine</li>
+<li>a possible starting block for your own visually editable sequencer</li>
+</ul>
+<p>The idea came to me when I was thinking about a way to make javascript demos where visuals and sounds are processed 
+through the same engine, to provide a purely synchronized experience between both worlds (remove the &quot;art&quot; from what I&#39;ve just said).</p>
+<p>I didn&#39;t even google to see if anybody came up with the same idea; As a musician/music maker/composer/you-name-it, I came up with a pretty naive and straight-forward implementation of the concept that would actually make sense to me... hence the use of a BPM and TPB (&quot;tick per beat&quot;). </p>
+<p>I guess it could also be a good starting block for a simple soundtracker in the end.</p>
+<h2>HOWTO</h2>
+<h3>Initialize it</h3>
+<pre><code class="language-javascript">Sequencer.init(options);</code></pre>
+<p>Options are straight-forward so far.</p>
+<pre><code class="language-javascript">options = {
+  debug : true|false, // will provide you a nice box for checking the current FPS and time, default is false
+  bpm: number, // where the magic happens, what is your BPM of choice, default is 60
+  tpb: number, // how much do you want to subdivide the BPM, default is 16
+  loop: boolean|number // do you want the sequencer to loop? true actually sets it to 0-end, number is the beat you loop at default is false.
 }</code></pre>
-  <h3>Register!</h3>
-  <pre><code class="language-javascript">Sequencer.register(id, {
-    start: number,  // start is a number, the beat you start the sequence at
-    duration: number, // the beat you stop playing the sequence at
-    values: {}, // an object for passing values you can reference on this (not sure it&#39;s useful)
-    sync: [], // an array you fill with function and 
-    init: function() {
-      // a function that is executed when the sequence is initialized (when it starts playing)
-    },
-    teardown: function() {
-      // a function that is executed when the sequence is removed (when it&#39;s done doing its job)
-    },
-    play: function(now, tick, beat, tickFired, beatFired) {
-      /*
-          that&#39;s where you do the magic cooking
+<h3>Make a scene!</h3>
+<pre><code class="language-javascript">var newScene = Sequencer.makeScene({
+  start: number,  // start is a number, the beat you start the sequence at
+  duration: number, // the beat you stop playing the sequence at
+  values: {}, // an object for passing values you can reference on this (not sure it&#39;s useful)
+  sync: [], // an array you fill with function and 
+  init: function() {
+    // a function that is executed when the sequence is initialized (when it starts playing)
+  },
+  teardown: function() {
+    // a function that is executed when the sequence is removed (when it&#39;s done doing its job)
+  },
+  play: function(now, tick, beat, tickFired, beatFired) {
+    /*
+        that&#39;s where you do the magic cooking
 
-          Arguments: 
-            - now: time in ms
-            - tick: time in tick
-            - beat: time in beat
-            - tickFire: boolean acting as a bang for &quot;new tick&quot;
-            - beatFired: boolean acting as a bang for &quot;new beat&quot;
-      */
-    }
+        Arguments: 
+          - now: time in ms
+          - tick: time in tick
+          - beat: time in beat
+          - tickFire: boolean acting as a bang for &quot;new tick&quot;
+          - beatFired: boolean acting as a bang for &quot;new beat&quot;
+    */
+  }
 })</code></pre>
-  <h3>PLAY IT!</h3>
-  <p>Because it&#39;s begging hard for being played. </p>
-  <pre><code class="language-javascript">function main(t) {
-    requestAnimationFrame(main)
-    Sequencer.play(t)
+<h3>Register!</h3>
+<p>There&#39;s two ways to register a scene.</p>
+<h4>With an already created scene.</h4>
+<pre><code class="language-javascript">Sequencer.register(start, newScene)</code></pre>
+<h4>Pass an object</h4>
+<p>Passing a simple object is possible if you have no interests in doing &quot;weird&quot; things and you just want to register your scene without updating them later.</p>
+<pre><code class="language-javascript">Sequencer.register(start, {
+  start: number,  // start is a number, the beat you start the sequence at
+  duration: number, // the beat you stop playing the sequence at
+  values: {}, // an object for passing values you can reference on this (not sure it&#39;s useful)
+  sync: [], // an array you fill with function and 
+  init: function() {
+    // a function that is executed when the sequence is initialized (when it starts playing)
+  },
+  teardown: function() {
+    // a function that is executed when the sequence is removed (when it&#39;s done doing its job)
+  },
+  play: function(now, tick, beat, tickFired, beatFired) {
+    /*
+        that&#39;s where you do the magic cooking
+
+        Arguments: 
+          - now: time in ms
+          - tick: time in tick
+          - beat: time in beat
+          - tickFire: boolean acting as a bang for &quot;new tick&quot;
+          - beatFired: boolean acting as a bang for &quot;new beat&quot;
+    */
+  }
+})</code></pre>
+<h3>PLAY IT!</h3>
+<p>Because it&#39;s begging hard for being played. </p>
+<pre><code class="language-javascript">startTime = +(new Date)
+Sequencer.play(0)
+requestAnimationFrame(main)
+
+function main(t) {
+  requestAnimationFrame(main)
+  Sequencer.play(+(new Date) - startTime)
 }</code></pre>
-  <h4>SYNCS</h4>
-  <p>As you may have noticed, you can register an array of functions to play on every ticks, it&#39;s something you could easily do in the play handler of a sequence but I actually thought some person may want to externalize some bits of code. 
-  If you want to add a sequence of function to repetitively play, this is where you should register them.</p>
-  <p>Let say you set the TPB to 4 and you want to execute a sequence of 4 functions on every ticks.</p>
-  <pre><code class="language-javascript">syncs: {
-    arr: [func1, func2, func3, func4]
+<p>(The way you deal with your &quot;startTime&quot; value is actually yours :)</p>
+<h4>SYNCS</h4>
+<p>As you may have noticed, you can register an array of functions to play on every ticks, it&#39;s something you could easily do in the play handler of a sequence but I actually thought some person may want to externalize some bits of code. 
+If you want to add a sequence of function to repetitively play, this is where you should register them.</p>
+<p>Let say you set the TPB to 4 and you want to execute a sequence of 4 functions on every ticks.</p>
+<pre><code class="language-javascript">syncs: {
+  arr: [func1, func2, func3, func4]
 }</code></pre>
-  <p>let say there&#39;s only three of them with a silence?</p>
-  <pre><code class="language-javascript">syncs: {
-    arr: [func1, func2, null, func3]
+<p>let say there&#39;s only three of them with a silence?</p>
+<pre><code class="language-javascript">syncs: {
+  arr: [func1, func2, null, func3]
 }</code></pre>
-  <p>And let say you decided to set a TPB of 32 and want to subdivide?</p>
-  <pre><code class="language-javascript">syncs: {
-    arr: [func1, func2, func3, func4],
-    sub: 4
+<p>And let say you decided to set a TPB of 32 and want to subdivide?</p>
+<pre><code class="language-javascript">syncs: {
+  arr: [func1, func2, func3, func4],
+  sub: 4
 }</code></pre>
-  <p>Then the functions of the array will be executed like this:
-  -&gt; 0: func1 
-  -&gt; 8: func2
-  -&gt; 16: func3
-  -&gt; 24: func4</p>
-  <p>TODO/Possible improvements: 
-  Randomize?</p>
-  <h3>Misc.</h3>
-  <p>While this sequencer was mainly built for making demos and synchronized animations, I realized some people may want to unregister and register scenes
-  while it&#39;s playing. It&#39;s now possible using Sequencer.unregister(id);</p>
-  <p>Here&#39;s the full façade:</p>
-  <pre><code class="language-javascript">return {
-    init: init, // initialize, pass options object
-    register: register, // register a scene
-    unregister: unregister, // unregister a scene, remove everywhere
-    remove: remove, // remove a scene (pass ID), will only remove from the &quot;playback&quot; but keep in timeline
-    add: add, // add a scene directly to the playback
-    goTo: goTo, // goTo.. beat; 
-    play: play, // play (time in ms)
-    stop: stop  // (...stop)
-}</code></pre>
-  <h3>Final words</h3>
-  <p>I started this (and almost ended it) during my summer 2013 holidays.
-  I just had an idea while my daughter was sleeping and I thought I might eventually give it a try.
-  It&#39;s not perfect but it&#39;s working and it&#39;s begging for people to test and improve it (pretty please).</p>
-  <p>Big thanks to Nicolas Léveillé (aka <a href="https://github.com/uucidl">uucidl</a>) for giving me some good tips about how to start coding a sequencer... I actually started the wrong way and didn&#39;t consider it should just be a converter at first.</p>
-  <p>Greets to <a href="https://github.com/mog">mog</a> who actually found it worth sharing with others.</p>
-</section>
+<p>Then the functions of the array will be executed like this:
+-&gt; 0: func1 
+-&gt; 8: func2
+-&gt; 16: func3
+-&gt; 24: func4</p>
+<p>TODO/Possible improvements: 
+Randomize?</p>
+<h3>Misc.</h3>
+<p>While this sequencer was mainly built for making demos and synchronized animations, I realized some people may want to unregister and register scenes
+while it&#39;s playing. It&#39;s now possible using Sequencer.unregister(sID) (wher sID is the id property of a scene)</p>
+<h4>Sequencer.init</h4>
+<p>Function takes an object as a parameter, will extend the default options of the sequencer.</p>
+<h4>Sequencer.makeScene</h4>
+<p>Didn&#39;t we cover that already? </p>
+<h4>Sequencer.register</h4>
+<p>Ok, we&#39;ve been through that already :)</p>
+<h4>Sequencer.unregister</h4>
+<p>Completely remove traces of the scene. </p>
+<pre><code class="language-javascript">function unregister(sID)</code></pre>
+<h4>Sequencer.add</h4>
+<p>Add a scene to the timeline. </p>
+<pre><code class="language-javascript">function add(start, sID)</code></pre>
+<p>WARNING: The scene must be registered first.</p>
+<h4>Sequencer.remove</h4>
+<p>Remove a scene to the timeline. </p>
+<pre><code class="language-javascript">function remove(start, sID)</code></pre>
+<p>WARNING: The scene must be registered first.</p>
+<h4>Sequencer.goTo</h4>
+<p>Pretty self-explanatory, right?</p>
+<pre><code class="language-javascript">function goTo(beat)</code></pre>
+<h4>Sequencer.play</h4>
+<p>Play! Actually, it&#39;s just converting the passed ms value into beats and ticks and will find which scenes should be added to the playback</p>
+<pre><code class="language-javascript">function play(ms)</code></pre>
+<h3>Final words</h3>
+<p>I started this (and almost ended it) during my summer 2013 holidays.
+I just had an idea while my daughter was sleeping and I thought I might eventually give it a try.
+It&#39;s not perfect but it&#39;s working and it&#39;s begging for people to test and improve it (pretty please).</p>
+<p>Big thanks to Nicolas Léveillé (aka <a href="https://github.com/uucidl">uucidl</a>) for giving me some good tips about how to start coding a sequencer... I actually started the wrong way and didn&#39;t consider it should just be a converter at first.</p>
+<p>Greets to <a href="https://github.com/mog">mog</a> who actually found it worth sharing with others.</p>
+
+    </section>
   </div>
   <script src="js/prism.js"></script>
   <script src="LeSequencer.js"></script>

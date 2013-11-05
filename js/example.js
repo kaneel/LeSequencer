@@ -13,8 +13,8 @@
     , unregisters = doc.getElementsByClassName("unregister")
     , scenes = {
       "first": {
-        start: 0,
         duration: 6,
+        id: "first",
         values: {
           marker: 0
         },
@@ -42,8 +42,8 @@
         }
       },
       "counter": { // this counts the beats from beat 0 to beat 12
-        start: 0,
         duration: 12,
+        id: "counter",
         init: function() {
           div.id = "counter"
           doc.getElementById("canvas-wrapper").appendChild(div)
@@ -56,18 +56,18 @@
         }
       },
       "silly": { // just a silly quick test
-        start: 6,
         duration: 6,
         values: {
           marker: 0
         },
+        id: "silly",
         init: function() {
           beatCount = 0
           frame = 0
         },
         play: function play1(now, tick, beat, tickFired, beatFired) {
           cv.height = cH
-
+          console.log("si")
           if (beatFired) beatCount += 1
           if (!beat && beatFired) frame = 0
           if (beat%6 >= 5) {
@@ -87,7 +87,8 @@
 
           frame += 1
         },
-        teardown: function tear1() {
+        teardown: function tear2() {
+          console.log("oh")
           cv.height = cH
         }
       }
@@ -102,16 +103,16 @@
   
   for (i = registers.length; i--; ) {
     registers[i].addEventListener("click", function(e) {
-      if (!!e.target.getAttribute("data-id")) {
-        Sequencer.register(e.target.getAttribute("data-id"), scenes[e.target.getAttribute("data-id")])
+      if (!!e.target.getAttribute("data-start")) {
+        Sequencer.register(e.target.getAttribute("data-start"), scenes[e.target.getAttribute("data-id")])
       }
     })
   }
 
   for (i = unregisters.length; i--; ) {
     unregisters[i].addEventListener("click", function(e) {
-      if (!!e.target.getAttribute("data-id")) {
-        Sequencer.unregister(e.target.getAttribute("data-id"), scenes[e.target.getAttribute("data-id")])
+      if (!!e.target.getAttribute("data-start")) {
+        Sequencer.unregister(e.target.getAttribute("data-id"))
       }
     })
   }
@@ -135,7 +136,7 @@
     Sequencer.play(+(new Date) - startTime)
   }
 
-  function colors(now, beat, tick, color) {
+  function colors(now, beatFired, tickFired, color) {
     if (color == "RED")
       ctx.fillStyle = "rgba(255,0,0,1)"
     if (color == "GREEN")
@@ -145,7 +146,7 @@
     
     ctx.fillRect(0, 0, cW, cH)
 
-    if (beat) {
+    if (beatFired) {
       this.values.marker = now
     }
       
