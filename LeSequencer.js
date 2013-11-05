@@ -75,7 +75,7 @@
                 
                 if (typeof seqToPlay[sID] != "undefined") { // if the scene was already registered in seqToPlay
                   if (typeof scene.teardown == "function") {
-                    scene.teardown()
+                    scene.teardown(now, tick, beat, tickFired /*bang for tick */, beatFired /* bang for beat */)
                   }
 
                   delete seqToPlay[sID]
@@ -110,7 +110,7 @@
                   if(!seqToPlay[scene.id]) {
                     // execute start method
                     if (typeof scene.init == "function") {
-                      scene.init()
+                      scene.init(now, tick, beat, tickFired /*bang for tick */, beatFired /* bang for beat */)
                     }
 
                     // add
@@ -126,7 +126,7 @@
               // loop on seqToPlay
               for (var k in seqToPlay) if (seqToPlay.hasOwnProperty(k) && seqToPlay[k].end == beat) {
                 if (typeof seqToPlay[k].scene.teardown == "function") {
-                  seqToPlay[k].scene.teardown()
+                  seqToPlay[k].scene.teardown(now, tick, beat, tickFired /*bang for tick */, beatFired /* bang for beat */)
                 }
 
                 delete seqToPlay[k]
@@ -340,7 +340,7 @@
           for (var k in sequences) if (sequences.hasOwnProperty(k)) {
             if(typeof seqToPlay[k] != "undefined") {
               if(typeof sequences[k].teardown == "function") {
-                sequences[k].teardown()
+                sequences[k].teardown(now, tick, beat, tickFired /*bang for tick */, beatFired /* bang for beat */)
               }
               
               delete seqToPlay[k]
@@ -395,13 +395,21 @@
             }
 
             // execute sequence main functions
-            thisSeq.scene.play(time, tick, beat, tickFired /*bang for tick */, beatFired /* bang for beat */)
+            thisSeq.scene.play(now, tick, beat, tickFired /*bang for tick */, beatFired /* bang for beat */)
           }
 
           // increase frame number - debug purposes only
           frame += 1
 
           return this
+        }
+
+        function getBeat() {
+          return beat
+        }
+
+        function getTick() {
+          return tick
         }
 
         return {
@@ -412,7 +420,11 @@
           add: add,
           remove: remove,
           goTo: goTo,
-          play: play
+          play: play,
+
+          // will have, again, to refactor the code.
+          getBeat: getBeat,
+          getTick: getTick
         }
     }())
 }(this))
