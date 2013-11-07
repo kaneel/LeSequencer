@@ -217,7 +217,7 @@ Play! Actually, it's just converting the passed ms value into beats and ticks an
 function play(ms)
 ```
 
-### Final words
+## Final words
 
 I started this (and almost ended it) during my summer 2013 holidays.
 I just had an idea while my daughter was sleeping and I thought I might eventually give it a try.
@@ -227,6 +227,6 @@ Big thanks to Nicolas Léveillé (aka [uucidl](https://github.com/uucidl)) for g
 
 Greets to [mog](https://github.com/mog) who actually found it worth sharing with others.
 
-### LICENSE
+## LICENSE
 
 [MIT](http://kaneel.mit-license.org/)
