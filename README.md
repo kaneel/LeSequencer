@@ -226,3 +226,7 @@ It's not perfect but it's working and it's begging for people to test and improv
 Big thanks to Nicolas Léveillé (aka [uucidl](https://github.com/uucidl)) for giving me some good tips about how to start coding a sequencer... I actually started the wrong way and didn't consider it should just be a converter at first.
 
 Greets to [mog](https://github.com/mog) who actually found it worth sharing with others.
+
+### LICENSE
+
+[MIT](http://kaneel.mit-license.org/)
