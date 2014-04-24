@@ -178,13 +178,14 @@
               }
 
               S.prototype.execute = function(index, tpb) {
-                var sub = 1;
-                if (typeof this.sub != "undefined") {
+              	var sub = 1;
+
+              	if (typeof this.sub != "undefined") {
                   sub = this.sub;
                 }
 
                 this.index = (index / sub) % tpb
-                // tiny trick to make sure we don't get a floating number
+
                 if (this.index%1 > 0) {
                   // abort
                   return
@@ -393,7 +394,7 @@
             thisSeq = seqToPlay[k]
 
             if (tickFired && !!thisSeq.scene.syncs) {
-              thisSeq.scene.syncs.execute(tick, options.tpb)
+              thisSeq.scene.syncs.execute(tick - (options.tpb*beat), options.tpb)
             }
 
             // execute sequence main functions
