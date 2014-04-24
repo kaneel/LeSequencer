@@ -63,10 +63,9 @@ through the same engine, to provide a purely synchronized experience between bot
 }</code></pre>
 <h3>Make a scene!</h3>
 <pre><code class="language-javascript">var newScene = Sequencer.makeScene({
-  start: number,  // start is a number, the beat you start the sequence at
   duration: number, // the beat you stop playing the sequence at
   values: {}, // an object for passing values you can reference on this (not sure it&#39;s useful)
-  sync: [], // an array you fill with function and 
+  syncs: [], // an array you fill with function and 
   init: function() {
     // a function that is executed when the sequence is initialized (when it starts playing)
   },
@@ -93,10 +92,9 @@ through the same engine, to provide a purely synchronized experience between bot
 <h4>Pass an object</h4>
 <p>Passing a simple object is possible if you have no interests in doing &quot;weird&quot; things and you just want to register your scene without updating them later.</p>
 <pre><code class="language-javascript">Sequencer.register(start, {
-  start: number,  // start is a number, the beat you start the sequence at
   duration: number, // the beat you stop playing the sequence at
   values: {}, // an object for passing values you can reference on this (not sure it&#39;s useful)
-  sync: [], // an array you fill with function and 
+  syncs: [], // an array you fill with function and 
   init: function() {
     // a function that is executed when the sequence is initialized (when it starts playing)
   },
@@ -138,18 +136,6 @@ If you want to add a sequence of function to repetitively play, this is where yo
 <pre><code class="language-javascript">syncs: {
   arr: [func1, func2, null, func3]
 }</code></pre>
-<p>And let say you decided to set a TPB of 32 and want to subdivide?</p>
-<pre><code class="language-javascript">syncs: {
-  arr: [func1, func2, func3, func4],
-  sub: 4
-}</code></pre>
-<p>Then the functions of the array will be executed like this:
--&gt; 0: func1 
--&gt; 8: func2
--&gt; 16: func3
--&gt; 24: func4</p>
-<p>TODO/Possible improvements: 
-Randomize?</p>
 <h3>Misc.</h3>
 <p>While this sequencer was mainly built for making demos and synchronized animations, I realized some people may want to unregister and register scenes
 while it&#39;s playing. It&#39;s now possible using Sequencer.unregister(sID) (where sID is the id property of a scene)</p>
