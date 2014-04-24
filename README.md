@@ -40,10 +40,9 @@ options = {
 
 ```js
 var newScene = Sequencer.makeScene({
-  start: number,  // start is a number, the beat you start the sequence at
   duration: number, // the beat you stop playing the sequence at
   values: {}, // an object for passing values you can reference on this (not sure it's useful)
-  sync: [], // an array you fill with function and 
+  syncs: [], // an array you fill with function and 
   init: function() {
     // a function that is executed when the sequence is initialized (when it starts playing)
   },
@@ -81,10 +80,9 @@ Passing a simple object is possible if you have no interests in doing "weird" th
 
 ```js
 Sequencer.register(start, {
-  start: number,  // start is a number, the beat you start the sequence at
   duration: number, // the beat you stop playing the sequence at
   values: {}, // an object for passing values you can reference on this (not sure it's useful)
-  sync: [], // an array you fill with function and 
+  syncs: [], // an array you fill with function and 
   init: function() {
     // a function that is executed when the sequence is initialized (when it starts playing)
   },
@@ -125,7 +123,7 @@ function main(t) {
 
 #### SYNCS
 
-As you may have noticed, you can register an array of functions to play on every ticks, it's something you could easily do in the play handler of a sequence but I actually thought some person may want to externalize some bits of code. 
+As you may have noticed, you can register an array of functions to play on every ticks, it's something you could easily do in the play handler of a sequence but I actually thought some person may want to have some bits of code outside of the play handlers.
 If you want to add a sequence of function to repetitively play, this is where you should register them.
 
 Let say you set the TPB to 4 and you want to execute a sequence of 4 functions on every ticks.
@@ -139,22 +137,6 @@ let say there's only three of them with a silence?
 syncs: {
   arr: [func1, func2, null, func3]
 }
-```
-And let say you decided to set a TPB of 32 and want to subdivide?
-```js
-syncs: {
-  arr: [func1, func2, func3, func4],
-  sub: 4
-}
-```
-Then the functions of the array will be executed like this:
--> 0: func1 
--> 8: func2
--> 16: func3
--> 24: func4
-
-TODO/Possible improvements: 
-Randomize?
 
 ### Misc.
 
@@ -175,7 +157,7 @@ Ok, we've been through that already :)
 
 #### Sequencer.unregister
 
-Completely remove traces of the scene. 
+Completely remove traces of the scene.
 
 ```js
 function unregister(sID)
@@ -183,7 +165,7 @@ function unregister(sID)
 
 #### Sequencer.add
 
-Add a scene to the timeline. 
+Add a scene to the timeline.
 
 ```js
 function add(start, sID)
@@ -193,7 +175,7 @@ WARNING: The scene must be registered first.
 
 #### Sequencer.remove
 
-Remove a scene to the timeline. 
+Remove a scene to the timeline.
 
 ```js
 function remove(start, sID)
