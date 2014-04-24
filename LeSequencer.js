@@ -170,7 +170,6 @@
           , Sync = (function() {
               var S = function(o, values) {
                 extend.call(this,o)
-
                 this.values = values
 
                 this.index = 0
@@ -178,18 +177,20 @@
                 return this
               }
 
-              S.prototype.execute = function(index) {
-                if (this.sub) {
-                  this.index = this.index / self.sub
-                  
-                  // tiny trick to make sure we don't get a floating number
-                  if (index%1) {
-                    // abort
-                    return 
-                  }
+              S.prototype.execute = function(index, tpb) {
+                var sub = 1;
+                if (typeof this.sub != "undefined") {
+                  sub = this.sub;
                 }
-                    
-                if (this.arr[this.index]) {
+
+                this.index = (index / sub) % tpb
+                // tiny trick to make sure we don't get a floating number
+                if (this.index%1 > 0) {
+                  // abort
+                  return
+                }
+
+                if (typeof this.arr[this.index] == "function") {
                   this.arr[this.index](this.values)
                 }
               }
@@ -198,6 +199,7 @@
             }())
 
         function makeScene(o) {
+          o.syncs = new Sync(o.syncs, o.values);
           return new Scene(o)
         }
 
@@ -389,9 +391,9 @@
           // then an other for-loop for great glory
           for(var k in seqToPlay) {
             thisSeq = seqToPlay[k]
-            
+
             if (tickFired && !!thisSeq.scene.syncs) {
-              thisSeq.scene.syncs.execute(tick%options.tpb)
+              thisSeq.scene.syncs.execute(tick, options.tpb)
             }
 
             // execute sequence main functions
