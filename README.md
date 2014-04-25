@@ -137,7 +137,7 @@ let say there's only three of them with a silence?
 syncs: {
   arr: [func1, func2, null, func3]
 }
-
+```
 ### Misc.
 
 While this sequencer was mainly built for making demos and synchronized animations, I realized some people may want to unregister and register scenes
